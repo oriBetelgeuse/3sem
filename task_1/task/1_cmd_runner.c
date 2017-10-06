@@ -18,6 +18,7 @@
 #include <string.h>
 #include <malloc.h>
 
+
 char ** a; // our argv
 
 int StrToArgv(char * s) {
@@ -26,11 +27,12 @@ int StrToArgv(char * s) {
   a = (char **) malloc(sizeof(char *));
   while (s[i] != '\n') {
     a = (char **) realloc(a, (k + 1) * sizeof(char *)); // add memory for new word pointer
-    a[k] = (char *) malloc(100); // memory for every single word
+    a[k] = (char *) malloc(sizeof(char)); // memory for every single word
     j = 0;
     while (s[i] == ' ')
       i++;
     while ((s[i] != ' ') && (s[i] != '\n')) {
+      a[k] = (char *) realloc(a[k], (j + 1) * sizeof(char));
       a[k][j] = s[i];
       i++;
       j++;
@@ -50,17 +52,35 @@ void clearargv(int NumberOfWords) {     // make memory free again
   free(a);
 }
 
+void ReadStdin(char ** s) {
+  char c = getchar();
+  int i = 0;
+  (*s) = (char *)malloc(sizeof(char));
+  while (c != '\n') {
+    (*s)[i] = c;
+    c = getchar();
+    i++;
+    (*s) = (char *)realloc((*s), (i + 1) * sizeof(char));
+  }
+  (*s)[i] = '\n';
+  i++;
+  (*s) = (char *)realloc((*s), (i + 1) * sizeof(char));
+  (*s)[i] = '\0';
+}
+
 int main() {
-  char str[256] = "";
+  char * str;
   pid_t pid;
-  fgets(str, 255, stdin);
+  ReadStdin(&str);
   int n, status;
   while(strcmp(str, "quit\n") != 0) {
     n = StrToArgv(str);
     switch(pid = fork()) {
       case 0:                 //child code
-        execv(a[0], a);
-        printf("An error in execv\n"); //this code runs only in case of error
+        execvp(a[0], a);
+        printf("An error in execv\n");  //this code runs only in case of error
+        clearargv(n);
+        free(str);
         exit(2);
         break;
       case -1: // error code
@@ -71,7 +91,9 @@ int main() {
         printf("Ret code: %d\n", WEXITSTATUS(status));
     }
     clearargv(n);
-    fgets(str, 255, stdin);
+    free(str);
+    ReadStdin(&str);
   }
+  free(str);
   return 0;
 }
