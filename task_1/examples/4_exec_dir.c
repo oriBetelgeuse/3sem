@@ -12,11 +12,7 @@ int main() {
    	switch(pid = fork()) {
    		case 0: 
 			execl("/bin/ls","ls","-l",NULL); // this is the code the child runs 
-			break;
-		case -1:   	
-			printf("error, it isn't possible to create new process");
-			break;
-		default: 
+   		default: 
 			wait(&status); // this is the code the parent runs
    	}
 	return 0;
